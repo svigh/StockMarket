@@ -20,5 +20,6 @@ public class Main {
 
         st1.printCompanies();
         System.out.println("Paul e degeaba");
+        System.out.println("Așa e.");
     }
 }
