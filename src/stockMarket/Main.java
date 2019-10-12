@@ -19,5 +19,6 @@ public class Main {
         st1.addCompany(c4);
 
         st1.printCompanies();
+        System.out.println("Paul e degeaba");
     }
 }
