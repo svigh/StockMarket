@@ -1,23 +1,21 @@
 package stockMarket;
-//import StockMarket;
-//import Company;
+
+import java.util.ArrayList;
 
 public class Main {
 
     public static void main(String[] args) {
-        Company c1 = new Company("ABC", 10);
-        Company c2 = new Company("DEF", 10);
-        Company c3 = new Company("GHI", 10);
-        Company c4 = new Company("JKL", 10);
+        ArrayList<Stock> StocksArray = new ArrayList<>();
+        Stock appl = new Stock("Apple", "Bob");
+        Stock msft = new Stock("Microsoft", "Jon");
+        for (int i = 0; i < 10; ++i) StocksArray.add(appl);
+        for (int i = 0; i < 10; ++i) StocksArray.add(msft);
 
-        StockMarket st1 = new StockMarket();
 
-        st1.addCompany(c1);
-        st1.addCompany(c1);
-        st1.addCompany(c2);
-        st1.addCompany(c3);
-        st1.addCompany(c4);
+        Offer off = new Offer(1, "sell", "Apple", 10, 9.5, "Bob");
+        System.out.println(off.toString());
 
-        st1.printCompanies();
+        StockMarket SM = new StockMarket(StocksArray);
+        SM.printEverything();
     }
 }
