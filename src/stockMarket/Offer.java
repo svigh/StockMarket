@@ -3,29 +3,31 @@ package stockMarket;
 public class Offer {
     int ID;
     private String offerType;   //Sell or Buy
-    private String companyName; // TODO: Maybe have this be a Stock object
+    private Stock stock; // TODO: Maybe have this be a Stock object
     private int stockCount;
     private double unitPrice;
-    private String ownerName;   // Owner of the offer, to be able to modify it
+    private Client owner;   // Owner of the offer, to be able to modify it
 
-    public Offer(int _ID, String _offerType, String _companyName, int _stockCount, double _unitPrice, String _ownerName) {
+    public Offer(int _ID, String _offerType, Stock _stock, int _stockCount, double _unitPrice, Client _owner) {
         if ( _offerType.toLowerCase().equals("buy") ) {
             offerType = "buy";
         } else {
             offerType = "sell";
         }
-        companyName = _companyName;
+        stock = _stock;
         stockCount = _stockCount;
         unitPrice = _unitPrice;
-        ownerName = _ownerName;
+        owner = _owner;
     }
+
+    public void setID(int newID) { ID = newID; }
 
     public void setStockCount(int newStockCount) {
         stockCount = newStockCount;
     }
 
-    public void setCompanyName(String newCompanyName) {
-        companyName = newCompanyName;
+    public void setCompanyName(Stock newStock) {
+        stock = newStock;
     }
 
     public void setUnitPrice(double newUnitPrice) {
@@ -36,9 +38,25 @@ public class Offer {
         return offerType;
     }
 
+    public Client getOwner() {
+        return owner;
+    }
+
+    public int getStockCount() {
+        return stockCount;
+    }
+
+    public Stock getStock() {
+        return stock;
+    }
+
+    public double getUnitPrice() {
+        return unitPrice;
+    }
+
     public String toString(){
         String temp = "";
-        return "Company name: " + companyName + "\nStock count: " + stockCount +
-            "\nUnit price: " + unitPrice + "\nOwner name: " + ownerName;
+        return "ID: " + ID + "\nOffer type: " + offerType + "\nStock name: " + stock + "\nStock count: " + stockCount +
+            "\nUnit price: " + unitPrice + "\nOwner name: " + owner;
     }
 }

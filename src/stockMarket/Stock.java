@@ -2,18 +2,22 @@ package stockMarket;
 
 public class Stock {
     private String companyName;
-    private String ownerName;
+    private Client owner;
 
-    public Stock(String _companyName, String _ownerName) {
+    public Stock(String _companyName, Client _owner) {
         companyName = _companyName;
-        ownerName = _ownerName;
+        owner = _owner;
     }
 
-    public void changeOwner(String newOwner) {
-        ownerName = newOwner;
+    public void changeOwner(Client newOwner) {
+        owner = newOwner;
+    }
+
+    public Client getOwner() {
+        return owner;
     }
 
     public String toString() {
-        return "Company name: " + companyName + "\nOwner name: " + ownerName;
+        return companyName;
     }
 }

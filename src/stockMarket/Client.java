@@ -12,14 +12,14 @@ public class Client {
         name = _name;
     }
 
-    public void createOffer(StockMarket stockMarket, Offer offer) {
-        stockMarket.createOffer(offer);
+    public int createOffer(StockMarket stockMarket, Offer offer) {
+        return stockMarket.createOffer(offer);
     }
 
     public boolean modifyOffer(StockMarket stockMarket,
             /*to know which offer to modify*/ int ID,
             /*new values*/ int stockCount, double unitPrice, String companyName) {
-        return stockMarket.modifyOffer(ID, stockCount, unitPrice, companyName);
+        return stockMarket.modifyOffer(ID, stockCount, unitPrice);
     }
 
     public boolean deleteOffer(StockMarket stockMarket, int ID) {
