@@ -47,20 +47,21 @@ public class StockMarket implements Runnable{
     }
 
     private boolean existsCompatibleOffer(Offer offer) {
-        if(offer.getOfferType().equals("sell"))
+        if(offer.getOfferType().equals("sell")){
             for( Offer iter_buy_offer : pendingBuyOffersArray )
                 if( sameCompany(iter_buy_offer, offer) )
                     if( iter_buy_offer.getUnitPrice() >= offer.getUnitPrice() )
                         return true;
                     else
                         return false;
-        else
-            for( Offer iter_sell_offer : pendingSellOffersArray )
-                if( sameCompany(iter_sell_offer, offer) )
-                    if( iter_sell_offer.getUnitPrice() <= offer.getUnitPrice() )
+        } else {
+            for (Offer iter_sell_offer : pendingSellOffersArray)
+                if (sameCompany(iter_sell_offer, offer))
+                    if (iter_sell_offer.getUnitPrice() <= offer.getUnitPrice())
                         return true;
                     else
                         return false;
+        }
     // If we get here then there is no company for the offer
     return false;
     }
