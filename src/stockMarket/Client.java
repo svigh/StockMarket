@@ -5,7 +5,7 @@ import stockMarket.StockMarket;
 
 import java.util.ArrayList;
 
-public class Client {
+public class Client implements Runnable {
     private String name;
 
     public Client(String _name) {
@@ -14,6 +14,11 @@ public class Client {
 
     public int createOffer(StockMarket stockMarket, Offer offer) {
         return stockMarket.createOffer(offer);
+    }
+
+    @Override
+    public void run() {
+        System.out.println("MyRunnable running");
     }
 
     public boolean modifyOffer(StockMarket stockMarket,

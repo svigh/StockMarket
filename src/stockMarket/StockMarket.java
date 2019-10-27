@@ -5,7 +5,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 
-public class StockMarket {
+public class StockMarket implements Runnable{
     private ArrayList<Stock> totalStocksArray = new ArrayList<>();
     private ArrayList<Offer> pendingBuyOffersArray = new ArrayList<>();
     private ArrayList<Offer> pendingSellOffersArray = new ArrayList<>();
@@ -14,6 +14,11 @@ public class StockMarket {
 
     public StockMarket(ArrayList<Stock> _totalStocksArray) {
         totalStocksArray = _totalStocksArray;
+    }
+
+    @Override
+    public void run() {
+        System.out.println("ceva");
     }
 
     // Order the lists based on the name and price of the stock
@@ -37,16 +42,119 @@ public class StockMarket {
         return orderedOffersArray;
     }
 
-//    private int isOfferSatisfied(Offer offer) {
-//        if(offer.getOfferType().equals("sell")) {
-//            /*Search for buy offers to satisfy*/
-//
-//        } else {
-//            /*Search for sell offers to satisfy*/
-//        }
-//
-////        return the difference between the offers
-//    }
+    private boolean sameCompany(Offer off1, Offer off2) {
+        return off1.getStock().toString().equals(off2.getStock().toString());
+    }
+
+    private boolean existsCompatibleOffer(Offer offer) {
+        if(offer.getOfferType().equals("sell"))
+            for( Offer iter_buy_offer : pendingBuyOffersArray )
+                if( sameCompany(iter_buy_offer, offer) )
+                    if( iter_buy_offer.getUnitPrice() >= offer.getUnitPrice() )
+                        return true;
+                    else
+                        return false;
+        else
+            for( Offer iter_sell_offer : pendingSellOffersArray )
+                if( sameCompany(iter_sell_offer, offer) )
+                    if( iter_sell_offer.getUnitPrice() <= offer.getUnitPrice() )
+                        return true;
+                    else
+                        return false;
+    // If we get here then there is no company for the offer
+    return false;
+    }
+
+    private int satisfyOffer(Offer offer) {
+        if(offer.getOfferType().equals("sell")) {
+            /*Search for buy offers to satisfy*/
+            while( (offer.getStockCount() > 0) && existsCompatibleOffer(offer) ) {
+                for(Iterator<Offer> iter = pendingBuyOffersArray.iterator(); iter.hasNext();) {
+                    Offer iter_buy_offer = iter.next();
+                    if( sameCompany(iter_buy_offer, offer) )
+                        if ( iter_buy_offer.getUnitPrice() >= offer.getUnitPrice() ) {
+                            /* Here we have the first hit for the company*/
+                            if (iter_buy_offer.getStockCount() > offer.getStockCount()) {
+                                Transaction transaction = new Transaction(offer.getOwner(), iter_buy_offer.getOwner(), offer.getStock().toString(), offer.getStockCount(), iter_buy_offer.getUnitPrice());
+                                transactionHistoryArray.add(transaction);
+                                iter_buy_offer.setStockCount(iter_buy_offer.getStockCount() - offer.getStockCount());
+                                offer.setStockCount(0);
+                            } else if (iter_buy_offer.getStockCount() < offer.getStockCount()) {
+                                Transaction transaction = new Transaction(offer.getOwner(), iter_buy_offer.getOwner(), offer.getStock().toString(), iter_buy_offer.getStockCount(), iter_buy_offer.getUnitPrice());
+                                transactionHistoryArray.add(transaction);
+                                offer.setStockCount(offer.getStockCount() - iter_buy_offer.getStockCount());
+                                iter_buy_offer.setStockCount(0);
+
+//                                pendingBuyOffersArray.remove(iter_buy_offer);
+                                iter.remove();
+                            } else {
+                                // They have the same number of stocks
+                                Transaction transaction = new Transaction(offer.getOwner(), iter_buy_offer.getOwner(), offer.getStock().toString(), iter_buy_offer.getStockCount(), iter_buy_offer.getUnitPrice());
+                                transactionHistoryArray.add(transaction);
+                                offer.setStockCount(0);
+                                iter_buy_offer.setStockCount(0);
+
+//                                pendingBuyOffersArray.remove(iter_buy_offer);
+                                iter.remove();
+                            }
+                        } else {
+                            pendingSellOffersArray.add(offer);
+                            pendingSellOffersArray = orderOffers(pendingSellOffersArray, "sell");
+                            return 1;
+                        } // if ( iter_buy_offer.getUnitPrice() >= offer.getUnitPrice() )
+                } // for(Iterator<Offer> iter = pendingBuyOffersArray.iterator(); iter.hasNext();)
+            } // while( (offer.getStockCount() > 0) && existsCompatibleOffer(offer) )
+            if( offer.getStockCount() > 0 ) {
+                pendingSellOffersArray.add(offer);
+                pendingSellOffersArray = orderOffers(pendingSellOffersArray, "sell");
+                return 1;
+            }
+        } else {
+            /*Search for buy offers to satisfy*/
+            while( (offer.getStockCount() > 0) && existsCompatibleOffer(offer) ) {
+                for(Iterator<Offer> iter = pendingSellOffersArray.iterator(); iter.hasNext();) {
+                    Offer iter_sell_offer = iter.next();
+                    if( sameCompany(iter_sell_offer, offer) )
+                        if ( iter_sell_offer.getUnitPrice() <= offer.getUnitPrice() ) {
+                            /* Here we have the first hit for the company*/
+                            if (iter_sell_offer.getStockCount() > offer.getStockCount()) {
+                                Transaction transaction = new Transaction(offer.getOwner(), iter_sell_offer.getOwner(), offer.getStock().toString(), offer.getStockCount(), iter_sell_offer.getUnitPrice());
+                                transactionHistoryArray.add(transaction);
+                                iter_sell_offer.setStockCount(iter_sell_offer.getStockCount() - offer.getStockCount());
+                                offer.setStockCount(0);
+                            } else if (iter_sell_offer.getStockCount() < offer.getStockCount()) {
+                                Transaction transaction = new Transaction(offer.getOwner(), iter_sell_offer.getOwner(), offer.getStock().toString(), iter_sell_offer.getStockCount(), iter_sell_offer.getUnitPrice());
+                                transactionHistoryArray.add(transaction);
+                                offer.setStockCount(offer.getStockCount() - iter_sell_offer.getStockCount());
+                                iter_sell_offer.setStockCount(0);
+
+                                iter.remove();
+                            } else {
+                                // They have the same number of stocks
+                                Transaction transaction = new Transaction(offer.getOwner(), iter_sell_offer.getOwner(), offer.getStock().toString(), iter_sell_offer.getStockCount(), iter_sell_offer.getUnitPrice());
+                                transactionHistoryArray.add(transaction);
+                                offer.setStockCount(0);
+                                iter_sell_offer.setStockCount(0);
+
+                                iter.remove();
+                            }
+                        } else {
+                            pendingBuyOffersArray.add(offer);
+                            pendingBuyOffersArray = orderOffers(pendingBuyOffersArray, "buy");
+                            return 1;
+                        } // if ( iter_sell_offer.getUnitPrice() <= offer.getUnitPrice() )
+                } // for(Iterator<Offer> iter = pendingBuyOffersArray.iterator(); iter.hasNext();)
+            } // while( (offer.getStockCount() > 0) && existsCompatibleOffer(offer) )
+            if( offer.getStockCount() > 0 ) {
+                pendingBuyOffersArray.add(offer);
+                pendingBuyOffersArray = orderOffers(pendingBuyOffersArray, "buy");
+                return 1;
+            }
+        }
+
+        // Should never get here, it's either buy or sell offer
+        return -1;
+    }
 
     private boolean ownerHasStockAvailable(Offer offer) {
         int auxCounter = offer.getStockCount();
@@ -63,7 +171,7 @@ public class StockMarket {
         return false;
     }
 
-    public int createOffer(Offer offer) {
+    public synchronized int createOffer(Offer offer) {
         // TODO: We want every incoming offer to receive an ID? Or only the valid ones
         offer.setID(++ID_sequence);
 
@@ -89,19 +197,34 @@ public class StockMarket {
 //
 //        }
 
-        if(offer.getOfferType().equals("sell")){
-            pendingSellOffersArray.add(offer);
-            pendingSellOffersArray = orderOffers(pendingSellOffersArray, "sell");
-        } else {
+        if ( pendingBuyOffersArray.isEmpty() && offer.getOfferType().equals("sell")){
+                pendingSellOffersArray.add(offer);
+                pendingSellOffersArray = orderOffers(pendingSellOffersArray, "sell");
+                return ID_sequence;
+        }
+
+        if ( pendingSellOffersArray.isEmpty() && offer.getOfferType().equals("buy")){
             pendingBuyOffersArray.add(offer);
             pendingBuyOffersArray = orderOffers(pendingBuyOffersArray, "buy");
+            return ID_sequence;
         }
+
+
+        satisfyOffer(offer);
+
+//        if(offer.getOfferType().equals("sell")){
+//            pendingSellOffersArray.add(offer);
+//            pendingSellOffersArray = orderOffers(pendingSellOffersArray, "sell");
+//        } else {
+//            pendingBuyOffersArray.add(offer);
+//            pendingBuyOffersArray = orderOffers(pendingBuyOffersArray, "buy");
+//        }
 
         return ID_sequence;
     }
 
     // This should not happen concurrently
-    public boolean deleteOffer(int ID) {
+    public synchronized boolean deleteOffer(int ID) {
         for(Offer offer : pendingBuyOffersArray) {
             if(offer.ID == ID){
                 pendingBuyOffersArray.remove(offer);
@@ -121,7 +244,7 @@ public class StockMarket {
     }
 
     // This should not happen concurrently
-    public boolean modifyOffer(
+    public synchronized boolean modifyOffer(
             /*to know which offer to modify*/ int ID,
             /*new values*/ int stockCount, double unitPrice) {
 
