@@ -5,7 +5,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 
-public class StockMarket implements Runnable{
+public class StockMarket{
     private ArrayList<Stock> totalStocksArray = new ArrayList<>();
     private ArrayList<Offer> pendingBuyOffersArray = new ArrayList<>();
     private ArrayList<Offer> pendingSellOffersArray = new ArrayList<>();
@@ -16,13 +16,13 @@ public class StockMarket implements Runnable{
         totalStocksArray = _totalStocksArray;
     }
 
-    @Override
-    public void run() {
-        System.out.println("ceva");
-    }
+//    @Override
+//    public void run() {
+//        System.out.println("ceva");
+//    }
 
     // Order the lists based on the name and price of the stock
-    private static ArrayList<Offer> orderOffers(ArrayList<Offer> offersArray, String type) {
+    private static void orderOffers(ArrayList<Offer> offersArray, String type) {
         // TODO: find a better way to order the arrays instead of returning a ordered array that overwrites the old one
         Comparator<Offer> comparator = Comparator.comparing(offer -> offer.getStock().toString());
 
@@ -31,15 +31,12 @@ public class StockMarket implements Runnable{
         if(type.equals("buy"))
             comparator = comparator.thenComparing(Comparator.comparing(offer -> -offer.getUnitPrice()));
         else
-            comparator = comparator.thenComparing(Comparator.comparing(offer -> offer.getUnitPrice()));
+            comparator = comparator.thenComparing(Comparator.comparing(Offer::getUnitPrice));
 
         // Sort the stream:
         Stream<Offer> offerStream = offersArray.stream().sorted(comparator);
-        List<Offer> sortedOffers = offerStream.collect(Collectors.toList());
 
-        ArrayList<Offer> orderedOffersArray = new ArrayList<Offer>(sortedOffers);
-
-        return orderedOffersArray;
+        offersArray =  offerStream.collect(Collectors.toCollection(ArrayList::new));
     }
 
     private boolean sameCompany(Offer off1, Offer off2) {
@@ -50,17 +47,11 @@ public class StockMarket implements Runnable{
         if(offer.getOfferType().equals("sell")){
             for( Offer iter_buy_offer : pendingBuyOffersArray )
                 if( sameCompany(iter_buy_offer, offer) )
-                    if( iter_buy_offer.getUnitPrice() >= offer.getUnitPrice() )
-                        return true;
-                    else
-                        return false;
+                    return iter_buy_offer.getUnitPrice() >= offer.getUnitPrice();
         } else {
             for (Offer iter_sell_offer : pendingSellOffersArray)
                 if (sameCompany(iter_sell_offer, offer))
-                    if (iter_sell_offer.getUnitPrice() <= offer.getUnitPrice())
-                        return true;
-                    else
-                        return false;
+                    return iter_sell_offer.getUnitPrice() <= offer.getUnitPrice();
         }
     // If we get here then there is no company for the offer
     return false;
@@ -85,8 +76,6 @@ public class StockMarket implements Runnable{
                                 transactionHistoryArray.add(transaction);
                                 offer.setStockCount(offer.getStockCount() - iter_buy_offer.getStockCount());
                                 iter_buy_offer.setStockCount(0);
-
-//                                pendingBuyOffersArray.remove(iter_buy_offer);
                                 iter.remove();
                             } else {
                                 // They have the same number of stocks
@@ -94,20 +83,18 @@ public class StockMarket implements Runnable{
                                 transactionHistoryArray.add(transaction);
                                 offer.setStockCount(0);
                                 iter_buy_offer.setStockCount(0);
-
-//                                pendingBuyOffersArray.remove(iter_buy_offer);
                                 iter.remove();
                             }
                         } else {
                             pendingSellOffersArray.add(offer);
-                            pendingSellOffersArray = orderOffers(pendingSellOffersArray, "sell");
+                            orderOffers(pendingSellOffersArray, "sell");
                             return 1;
                         } // if ( iter_buy_offer.getUnitPrice() >= offer.getUnitPrice() )
                 } // for(Iterator<Offer> iter = pendingBuyOffersArray.iterator(); iter.hasNext();)
             } // while( (offer.getStockCount() > 0) && existsCompatibleOffer(offer) )
             if( offer.getStockCount() > 0 ) {
                 pendingSellOffersArray.add(offer);
-                pendingSellOffersArray = orderOffers(pendingSellOffersArray, "sell");
+                orderOffers(pendingSellOffersArray, "sell");
                 return 1;
             }
         } else {
@@ -141,14 +128,14 @@ public class StockMarket implements Runnable{
                             }
                         } else {
                             pendingBuyOffersArray.add(offer);
-                            pendingBuyOffersArray = orderOffers(pendingBuyOffersArray, "buy");
+                            orderOffers(pendingBuyOffersArray, "buy");
                             return 1;
                         } // if ( iter_sell_offer.getUnitPrice() <= offer.getUnitPrice() )
                 } // for(Iterator<Offer> iter = pendingBuyOffersArray.iterator(); iter.hasNext();)
             } // while( (offer.getStockCount() > 0) && existsCompatibleOffer(offer) )
             if( offer.getStockCount() > 0 ) {
                 pendingBuyOffersArray.add(offer);
-                pendingBuyOffersArray = orderOffers(pendingBuyOffersArray, "buy");
+                orderOffers(pendingBuyOffersArray, "buy");
                 return 1;
             }
         }
@@ -194,19 +181,15 @@ public class StockMarket implements Runnable{
         // 2**. In case of fully satisfied offers we assign the new owner to the stocks
 
 
-//        if(isOfferSatisfied(offer)) {
-//
-//        }
-
         if ( pendingBuyOffersArray.isEmpty() && offer.getOfferType().equals("sell")){
                 pendingSellOffersArray.add(offer);
-                pendingSellOffersArray = orderOffers(pendingSellOffersArray, "sell");
+                orderOffers(pendingSellOffersArray, "sell");
                 return ID_sequence;
         }
 
         if ( pendingSellOffersArray.isEmpty() && offer.getOfferType().equals("buy")){
             pendingBuyOffersArray.add(offer);
-            pendingBuyOffersArray = orderOffers(pendingBuyOffersArray, "buy");
+            orderOffers(pendingBuyOffersArray, "buy");
             return ID_sequence;
         }
 
@@ -229,7 +212,7 @@ public class StockMarket implements Runnable{
         for(Offer offer : pendingBuyOffersArray) {
             if(offer.ID == ID){
                 pendingBuyOffersArray.remove(offer);
-                pendingBuyOffersArray = orderOffers(pendingBuyOffersArray, "buy");
+                orderOffers(pendingBuyOffersArray, "buy");
                 return true;
             }
         }
@@ -237,7 +220,7 @@ public class StockMarket implements Runnable{
         for(Offer offer : pendingSellOffersArray) {
             if(offer.ID == ID){
                 pendingSellOffersArray.remove(offer);
-                pendingSellOffersArray = orderOffers(pendingSellOffersArray, "sell");
+                orderOffers(pendingSellOffersArray, "sell");
                 return true;
             }
         }
@@ -254,7 +237,7 @@ public class StockMarket implements Runnable{
             if(offer.ID == ID){
                 offer.setStockCount(stockCount);
                 offer.setUnitPrice(unitPrice);
-                pendingBuyOffersArray = orderOffers(pendingBuyOffersArray, "buy");
+                orderOffers(pendingBuyOffersArray, "buy");
                 return true;
             }
         }
@@ -263,7 +246,7 @@ public class StockMarket implements Runnable{
             if(offer.ID == ID){
                 offer.setStockCount(stockCount);
                 offer.setUnitPrice(unitPrice);
-                pendingSellOffersArray = orderOffers(pendingSellOffersArray, "sell");
+                orderOffers(pendingSellOffersArray, "sell");
                 return true;
             }
         }
