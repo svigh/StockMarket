@@ -291,8 +291,29 @@ public class StockMarket{
     public void printStocks() {
         for(Stock stock : totalStocksArray){
             System.out.println(stock.toString());
-            System.out.println("\n");
         }
+    }
+
+    public double getBuyPrice(String stockName) {   // TODO: maybe have this throw an exception
+        // Get the first apparition in the sell offers array, thats why we ordered them
+        // TODO: these loops are bad
+        for(Offer offer : pendingBuyOffersArray) {
+            if(offer.getStock().toString().toLowerCase().equals(stockName.toLowerCase())){
+                return offer.getUnitPrice();
+            }
+        }
+        return -1;  // If it doesn't exist
+    }
+
+    public double getSellPrice(String stockName) {  // TODO: maybe have this throw an exception
+        // Get the first apparition in the sell offers array, thats why we ordered them
+        // TODO: these loops are bad
+        for(Offer offer : pendingSellOffersArray) {
+            if(offer.getStock().toString().toLowerCase().equals(stockName.toLowerCase())){
+                return offer.getUnitPrice();
+            }
+        }
+        return -1;  // If it doesn't exist
     }
 
 }
